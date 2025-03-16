@@ -30,5 +30,13 @@
     "dob": "2002-02-02",
     "age": 23,
     "password": "123456"
+  },
+  {
+    "id": 5,
+    "username": "user5",
+    "email": "user5@kod.com",
+    "dob": "2001-12-12",
+    "age": 24,
+    "password": "123456"
   }
 ]
