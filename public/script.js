@@ -4,6 +4,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const jobList = document.getElementById("jobList");
     const logoutBtn = document.getElementById("logoutBtn");
 
+    // Your deployed backend URL
+    const BACKEND_URL = "https://job-done.onrender.com";
+
     // Handle Registration
     if (registerForm) {
         registerForm.addEventListener("submit", async (event) => {
@@ -14,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const dob = document.getElementById("dob").value;
             const password = document.getElementById("password").value;
 
-            const response = await fetch("/register", {
+            const response = await fetch(`${BACKEND_URL}/register`, {  // Updated URL
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username, email, dob, password })
@@ -37,7 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const username = document.getElementById("loginUsername").value;
             const password = document.getElementById("loginPassword").value;
 
-            const response = await fetch("/login", {
+            const response = await fetch(`${BACKEND_URL}/login`, {  // Updated URL
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username, password })
@@ -54,7 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Fetch and display real-time job listings on Dashboard
     if (jobList) {
-        fetch("/jobs")
+        fetch(`${BACKEND_URL}/jobs`)  // Updated URL
             .then(response => response.json())
             .then(data => {
                 if (data.jobs.length > 0) {
