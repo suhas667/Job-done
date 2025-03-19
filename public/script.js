@@ -1,85 +1,74 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const registerForm = document.getElementById("registerForm");
-    const loginForm = document.getElementById("loginForm");
-    const jobList = document.getElementById("jobList");
-    const logoutBtn = document.getElementById("logoutBtn");
+const express = require("express");
+const fs = require("fs");
+const path = require("path");
+const bodyParser = require("body-parser");
 
-    // Your deployed backend URL
-    const BACKEND_URL = "https://job-done.onrender.com";
+const app = express();
+const PORT = 3000; // Server will run on http://localhost:3000
 
-    // Handle Registration
-    if (registerForm) {
-        registerForm.addEventListener("submit", async (event) => {
-            event.preventDefault();
+// Middleware
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, "public"))); // Serve static files
 
-            const username = document.getElementById("username").value;
-            const email = document.getElementById("email").value;
-            const dob = document.getElementById("dob").value;
-            const password = document.getElementById("password").value;
+// Route to serve landing page
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "index.html"));
+});
 
-            const response = await fetch(`${BACKEND_URL}/register`, {  // Updated URL
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username, email, dob, password })
-            });
+// Route to serve login page
+app.get("/login.html", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "login.html"));
+});
 
-            const data = await response.json();
-            alert(data.message);
+// Route to serve register page
+app.get("/register.html", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "register.html"));
+});
 
-            if (data.success) {
-                window.location.href = "login.html"; // Redirect to login page after registration
-            }
-        });
+// Route to serve dashboard
+app.get("/dashboard.html", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "dashboard.html"));
+});
+
+// *** Add the registration route here ***
+app.post("/register", (req, res) => {
+    const { username, email, dob, password } = req.body;
+    const usersFile = path.join(__dirname, "users.json");
+
+    let users = [];
+
+    // Read existing users data
+    if (fs.existsSync(usersFile)) {
+        users = JSON.parse(fs.readFileSync(usersFile, "utf8"));
     }
 
-    // Handle Login
-    if (loginForm) {
-        loginForm.addEventListener("submit", async (event) => {
-            event.preventDefault();
+    // Generate new user ID
+    const newUserId = users.length > 0 ? users[users.length - 1].id + 1 : 1;
 
-            const username = document.getElementById("loginUsername").value;
-            const password = document.getElementById("loginPassword").value;
+    // Calculate age from DOB
+    const birthYear = new Date(dob).getFullYear();
+    const currentYear = new Date().getFullYear();
+    const age = currentYear - birthYear;
 
-            const response = await fetch(`${BACKEND_URL}/login`, {  // Updated URL
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username, password })
-            });
+    // Create new user object
+    const newUser = {
+        id: newUserId,
+        username,
+        email,
+        dob,
+        age,
+        password
+    };
 
-            const data = await response.json();
-            alert(data.message);
+    // Save user to file
+    users.push(newUser);
+    fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
 
-            if (data.success) {
-                window.location.href = "dashboard.html"; // Redirect to dashboard
-            }
-        });
-    }
+    res.json({ success: true, message: "Registration successful! Redirecting to login..." });
+});
 
-    // Fetch and display real-time job listings on Dashboard
-    if (jobList) {
-        fetch(`${BACKEND_URL}/jobs`)  // Updated URL
-            .then(response => response.json())
-            .then(data => {
-                if (data.jobs.length > 0) {
-                    jobList.innerHTML = data.jobs.map(job => `
-                        <div class="job-card">
-                            <h3>${job.title}</h3>
-                            <p><strong>Company:</strong> ${job.company}</p>
-                            <p><strong>Location:</strong> ${job.location}</p>
-                            <a href="${job.url}" target="_blank">View Job</a>
-                        </div>
-                    `).join("");
-                } else {
-                    jobList.innerHTML = "<p>No jobs found.</p>";
-                }
-            })
-            .catch(error => console.error("Error fetching jobs:", error));
-    }
-
-    // Logout function
-    if (logoutBtn) {
-        logoutBtn.addEventListener("click", () => {
-            window.location.href = "login.html";
-        });
-    }
+// *** Server Start (This should always be the last part) ***
+app.listen(PORT, () => {
+    console.log(`Server running at http://localhost:${PORT}`);
 });
